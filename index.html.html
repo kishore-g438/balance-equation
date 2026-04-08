@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Balance the Equation</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f0;min-height:100vh;padding:20px}
+#app{max-width:940px;margin:0 auto}
+h1{font-size:22px;font-weight:600;color:#1a1a1a;margin-bottom:4px}
+.main-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:660px){.main-grid{grid-template-columns:1fr}}
+.panel{background:#fff;border:1px solid #e5e5e0;border-radius:12px;padding:16px}
+.ptitle{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.type-nav{display:flex;gap:6px;margin:8px 0 12px;flex-wrap:wrap}
+.tnav{padding:4px 12px;font-size:11px;font-weight:600;border-radius:20px;border:1px solid #ddd;background:#f5f5f0;color:#999;cursor:default;transition:all .2s}
+.tnav.active-1{background:#e1f5ee;border-color:#1d9e75;color:#085041}
+.tnav.active-2{background:#e6f1fb;border-color:#378add;color:#0c447c}
+.tnav.active-3{background:#faeeda;border-color:#ef9f27;color:#633806}
+.eq-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.type-badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.type-1{background:#e1f5ee;color:#085041;border:1px solid #1d9e75}
+.type-2{background:#e6f1fb;color:#0c447c;border:1px solid #378add}
+.type-3{background:#faeeda;color:#633806;border:1px solid #ef9f27}
+.eq-text{font-size:15px;font-weight:600;color:#1a1a1a}
+.pans-row{display:flex;gap:20px;align-items:flex-end;justify-content:center;width:100%;margin-bottom:10px}
+.pan-col{display:flex;flex-direction:column;align-items:center;gap:2px}
+.pan-lbl{font-size:11px;color:#999;margin-bottom:2px;font-weight:500}
+.pan{background:#f8f8f5;border:1px solid #ddd;border-radius:10px;min-width:110px;min-height:54px;padding:7px 9px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;justify-content:center;transition:all .3s}
+.pan-rod{width:2px;height:24px;background:#ccc;margin:0 auto}
+.beam{height:4px;border-radius:2px;transition:transform .4s;background:#ccc}
+.beam.balanced{background:#1d9e75}
+.beam.lheavy{transform:rotate(-8deg);transform-origin:center}
+.beam.rheavy{transform:rotate(8deg);transform-origin:center}
+.fulcrum{width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-top:15px solid #ccc;margin:0 auto}
+.disc{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+.dx{background:#b5d4f4;color:#0c447c;border:2px solid #378add}
+.dnx{background:#f5c4b3;color:#712b13;border:2px solid #d85a30}
+.dp{background:#c0dd97;color:#27500a;border:2px solid #639922}
+.dn{background:#fac775;color:#633806;border:2px solid #ef9f27}
+.palette{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}
+.db{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;cursor:pointer;border:2px solid transparent;transition:transform .1s;user-select:none}
+.db:hover{transform:scale(1.12)}
+.db.sel{box-shadow:0 0 0 2px #fff,0 0 0 4px #378add}
+.qty-row{display:flex;align-items:center;gap:6px;font-size:12px;color:#666;margin:6px 0}
+.qty-in{width:44px;padding:4px 6px;font-size:13px;border:1px solid #ddd;border-radius:8px;text-align:center}
+.side-row{display:flex;gap:6px;margin:6px 0}
+.sb{flex:1;padding:6px;font-size:12px;cursor:pointer;border:1px solid #ddd;border-radius:8px;background:#f5f5f0;color:#333;transition:all .1s;font-weight:500}
+.sb:hover{background:#e8e8e4}
+.sb.act{background:#e6f1fb;border-color:#378add;color:#0c447c}
+.abtn{width:100%;padding:9px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid #2d8a60;border-radius:8px;background:#e1f5ee;color:#085041;margin-top:6px;transition:all .1s}
+.abtn:hover{background:#9fe1cb}
+.abtn:disabled{opacity:.4;cursor:not-allowed}
+.steps-log{display:flex;flex-direction:column;gap:7px;max-height:340px;overflow-y:auto;padding-right:2px}
+.sc{border-radius:8px;padding:9px 12px;border:1px solid #e5e5e0;background:#f8f8f5}
+.sc.ok{border-color:#1d9e75;background:#e1f5ee}
+.sc.info{border-color:#378add;background:#e6f1fb}
+.snum{font-size:11px;font-weight:600;color:#888;margin-bottom:2px}
+.sstmt{font-size:13px;color:#333;margin-bottom:2px}
+.seq{font-size:13px;font-weight:600;color:#185fa5;font-family:'Courier New',monospace}
+.div-ui{background:#faeeda;border:1px solid #ef9f27;border-radius:10px;padding:11px 13px;margin-top:8px}
+.div-ui p{font-size:13px;color:#333;line-height:1.9;margin-bottom:6px}
+.div-ui select{padding:5px 8px;font-size:13px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#333}
+.kp-disp{border:1px solid #ddd;border-radius:8px;background:#fff;padding:4px 10px;min-width:46px;font-size:14px;font-weight:600;text-align:center;color:#333;display:inline-block;margin-bottom:5px}
+.kp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;max-width:132px}
+.kb{padding:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid #e0e0db;border-radius:6px;background:#f5f5f0;color:#333;transition:all .1s}
+.kb:hover{background:#fff}
+.dab{padding:7px 15px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid #2d8a60;border-radius:8px;background:#e1f5ee;color:#085041;margin-top:8px}
+.dab:hover{background:#9fe1cb}
+.hint{background:#faeeda;border:1px solid #ef9f27;border-radius:8px;padding:9px 12px;font-size:12px;color:#633806;margin-top:6px;line-height:1.5}
+.preview-lbl{font-size:12px;color:#888;margin:3px 0 6px;min-height:18px}
+.result-banner{padding:14px;border-radius:12px;margin-top:10px;background:#e1f5ee;border:1px solid #1d9e75;color:#085041}
+.result-answer{font-size:20px;font-weight:700;margin-bottom:4px}
+.result-msg{font-size:13px;margin-bottom:12px;color:#0f6e56}
+.next-label{font-size:11px;font-weight:700;color:#085041;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+.choice-btns{display:flex;flex-direction:column;gap:8px}
+.choice-btn{padding:11px 14px;font-size:13px;font-weight:600;cursor:pointer;border-radius:10px;text-align:left;transition:all .15s;border:none;width:100%}
+.btn-similar{background:#1d9e75;color:#fff}
+.btn-similar:hover{background:#0f6e56}
+.btn-levelup{background:#378add;color:#fff}
+.btn-levelup:hover{background:#185fa5}
+.btn-levelup:disabled{background:#f0f0eb;color:#aaa;border:1px solid #ddd;cursor:not-allowed}
+.btn-sub{font-size:11px;font-weight:400;margin-top:3px;opacity:.88}
+.optimal-box{background:#e6f1fb;border:1px solid #378add;border-radius:10px;padding:11px 13px;margin-top:10px;font-size:12px;color:#0c447c}
+.opt-title{font-weight:700;margin-bottom:5px;font-size:12px}
+.opt-step{font-family:'Courier New',monospace;font-size:12px;color:#185fa5;margin-top:4px;padding-left:8px;border-left:2px solid #b5d4f4}
+</style>
+</head>
+<body>
+<div id="app">
+  <h1>Balance the Equation</h1>
+  <div class="type-nav" id="type-nav">
+    <div class="tnav" id="tnav-1">Type 1: x + b = c</div>
+    <div class="tnav" id="tnav-2">Type 2: ax + b = c</div>
+    <div class="tnav" id="tnav-3">Type 3: ax + b = cx + d</div>
+  </div>
+  <div class="eq-row">
+    <span class="type-badge" id="type-badge"></span>
+    <span class="eq-text">Solve: <span id="eq-val"></span></span>
+  </div>
+  <div class="main-grid">
+    <div class="panel">
+      <div class="ptitle">Balance</div>
+      <div class="pans-row">
+        <div class="pan-col">
+          <div class="pan-lbl">LHS</div>
+          <div class="pan" id="pan-left"></div>
+          <div class="pan-rod"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding-bottom:26px">
+          <div class="beam" id="beam" style="width:134px"></div>
+          <div class="fulcrum"></div>
+        </div>
+        <div class="pan-col">
+          <div class="pan-lbl">RHS</div>
+          <div class="pan" id="pan-right"></div>
+          <div class="pan-rod"></div>
+        </div>
+      </div>
+      <div id="action-area">
+        <div class="ptitle">Add discs to both sides</div>
+        <div class="palette" id="palette"></div>
+        <div class="qty-row">
+          Times: <input type="number" class="qty-in" id="qty-in" value="1" min="1" max="20">
+          <span style="font-size:11px;color:#aaa">(how many of this disc)</span>
+        </div>
+        <div class="preview-lbl" id="preview-lbl">&#8212; pick a disc above</div>
+        <div class="side-row">
+          <button class="sb act" id="btn-both" onclick="setSide('both')">Both sides</button>
+          <button class="sb" id="btn-left" onclick="setSide('left')">Left only</button>
+          <button class="sb" id="btn-right" onclick="setSide('right')">Right only</button>
+        </div>
+        <button class="abtn" id="abtn" onclick="applyAction()" disabled>Apply action</button>
+        <div id="hint-area"></div>
+      </div>
+      <div id="div-ui-area"></div>
+    </div>
+    <div class="panel">
+      <div class="ptitle">Algebraic steps</div>
+      <div class="steps-log" id="steps-log"></div>
+      <div id="result-area"></div>
+    </div>
+  </div>
+</div>
+<script>
+var usedQ={1:[],2:[],3:[]};
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function rndNZ(a,b){var v=0;while(v===0)v=rnd(a,b);return v;}
+function generateQ(type){
+  var q=null,tries=0;
+  while(!q&&tries++<60){q=_makeQ(type);if(q&&usedQ[type].indexOf(q.eq)!==-1)q=null;}
+  if(!q){usedQ[type]=[];q=_makeQ(type);}
+  if(q)usedQ[type].push(q.eq);
+  return q;
+}
+function _makeQ(t){return t===1?makeT1():t===2?makeT2():makeT3();}
+function makeT1(){
+  var b=rndNZ(-7,7),x=rnd(1,9),c=x+b;
+  if(c<=0||c>12)return null;
+  var eq=b>0?('x + '+b+' = '+c):('x \u2212 '+Math.abs(b)+' = '+c);
+  var lhs=[{t:'x'}];
+  for(var i=0;i<Math.abs(b);i++)lhs.push({t:b>0?'p':'n'});
+  var rhs=[];for(var i=0;i<c;i++)rhs.push({t:'p'});
+  var sym=b>0?('\u2212 '+b):('+'+Math.abs(b));
+  return{type:1,eq:eq,answer:x,lhsInit:lhs,rhsInit:rhs,optimalSteps:[
+    (b>0?'Subtract':'Add')+' '+Math.abs(b)+' '+(b>0?'from':'to')+' both sides: '+eq.split('=')[0].trim()+' '+sym+' = '+c+' '+sym,
+    'Simplify: x = '+x
+  ]};
+}
+function makeT2(){
+  var a=rnd(2,5),x=rnd(1,6),b=rndNZ(-8,8),c=a*x+b;
+  if(c<=0||c>16)return null;
+  var eqL=b>0?(a+'x + '+b):(a+'x \u2212 '+Math.abs(b));
+  var eq=eqL+' = '+c;
+  var lhs=[];for(var i=0;i<a;i++)lhs.push({t:'x'});
+  for(var i=0;i<Math.abs(b);i++)lhs.push({t:b>0?'p':'n'});
+  var rhs=[];for(var i=0;i<c;i++)rhs.push({t:'p'});
+  var sym=b>0?('\u2212 '+b):('+'+Math.abs(b));
+  return{type:2,eq:eq,answer:x,lhsInit:lhs,rhsInit:rhs,optimalSteps:[
+    (b>0?'Subtract':'Add')+' '+Math.abs(b)+' '+(b>0?'from':'to')+' both sides: '+eqL+' '+sym+' = '+c+' '+sym,
+    'Simplify: '+a+'x = '+(c-b),
+    'Divide both sides by '+a+': x = '+x
+  ]};
+}
+function makeT3(){
+  var a=rnd(3,6),c2=rnd(1,a-1),x=rnd(1,5),d=rndNZ(-8,8);
+  var b=(c2*x+d)-(a*x);
+  if(Math.abs(b)>9||Math.abs(b)<1||Math.abs(d)>9)return null;
+  if(a*x+b!==c2*x+d)return null;
+  var eqL=b>0?(a+'x + '+b):(a+'x \u2212 '+Math.abs(b));
+  var eqR=d>0?(c2+'x + '+d):(c2+'x \u2212 '+Math.abs(d));
+  var eq=eqL+' = '+eqR;
+  var lhs=[];for(var i=0;i<a;i++)lhs.push({t:'x'});
+  for(var i=0;i<Math.abs(b);i++)lhs.push({t:b>0?'p':'n'});
+  var rhs=[];for(var i=0;i<c2;i++)rhs.push({t:'x'});
+  for(var i=0;i<Math.abs(d);i++)rhs.push({t:d>0?'p':'n'});
+  var net=a-c2,afterB=d-b;
+  var midEq=b>0?(net+'x \u2212 '+Math.abs(b)+' = '+(d>0?d:'\u2212'+Math.abs(d))):(net+'x + '+Math.abs(b)+' = '+(d>0?d:'\u2212'+Math.abs(d)));
+  return{type:3,eq:eq,answer:x,lhsInit:lhs,rhsInit:rhs,optimalSteps:[
+    'Subtract '+c2+'x from both sides: '+eqL+' \u2212 '+c2+'x = '+eqR+' \u2212 '+c2+'x',
+    'Simplify: '+midEq,
+    (b>0?'Subtract':'Add')+' '+Math.abs(b)+' '+(b>0?'from':'to')+' both sides',
+    'Simplify: '+net+'x = '+afterB,
+    'Divide both sides by '+net+': x = '+x
+  ]};
+}
+var currentQ=null,selDisc=null,selSide='both',divVal='';
+var panL=[],panR=[],stepCount=0,currentType=1;
+function cloneArr(a){return a.map(function(d){return{t:d.t};});}
+function cancelPairs(arr){
+  var pc=0,nc=0,xc=0,nxc=0;
+  for(var i=0;i<arr.length;i++){
+    if(arr[i].t==='p')pc++;else if(arr[i].t==='n')nc++;else if(arr[i].t==='x')xc++;else nxc++;
+  }
+  var cn=Math.min(pc,nc);pc-=cn;nc-=cn;
+  var cx=Math.min(xc,nxc);xc-=cx;nxc-=cx;
+  var r=[];
+  for(var i=0;i<xc;i++)r.push({t:'x'});
+  for(var i=0;i<nxc;i++)r.push({t:'nx'});
+  for(var i=0;i<pc;i++)r.push({t:'p'});
+  for(var i=0;i<nc;i++)r.push({t:'n'});
+  return r;
+}
+function numVal(a){var v=0;for(var i=0;i<a.length;i++)v+=(a[i].t==='p'?1:a[i].t==='n'?-1:0);return v;}
+function xCoeff(a){var v=0;for(var i=0;i<a.length;i++)v+=(a[i].t==='x'?1:a[i].t==='nx'?-1:0);return v;}
+function isValidMove(dt,total,side){
+  if(side!=='both')return{ok:false,hint:'To keep the equation balanced, you must apply the same action to BOTH sides.'};
+  var sL=cloneArr(panL);for(var i=0;i<total;i++)sL.push({t:dt});
+  var sR=cloneArr(panR);for(var i=0;i<total;i++)sR.push({t:dt});
+  var aL=cancelPairs(sL),aR=cancelPairs(sR);
+  if(aL.length<sL.length||aR.length<sR.length)return{ok:true};
+  return{ok:false,hint:"This move doesn't cancel anything out. Look at what's on each pan \u2014 add the opposite type of disc to create zero pairs and simplify."};
+}
+function getState(){
+  var xL=xCoeff(panL),xR=xCoeff(panR),nL=numVal(panL),nR=numVal(panR);
+  var xDL=0,xDR=0,nDL=0,nDR=0;
+  for(var i=0;i<panL.length;i++){if(panL[i].t==='x'||panL[i].t==='nx')xDL++;else nDL++;}
+  for(var i=0;i<panR.length;i++){if(panR[i].t==='x'||panR[i].t==='nx')xDR++;else nDR++;}
+  if(xL===1&&xR===0&&xDL===1&&xDR===0&&nDL===0)return{done:true,answer:nR};
+  if(xL===-1&&xR===0&&nDL===0)return{done:true,answer:-nR};
+  if(xDL>=2&&xDR===0&&nDL===0)return{needDiv:true,coeff:xL,rhs:nR};
+  if(xDR>=2&&xDL===0&&nDR===0)return{needDiv:true,coeff:xR,rhs:nL};
+  if(xL<0&&xR===0&&nDL===0)return{needDiv:true,coeff:xL,rhs:nR};
+  return{continuing:true};
+}
+function discCls(t){return t==='x'?'disc dx':t==='nx'?'disc dnx':t==='p'?'disc dp':'disc dn';}
+function discTxt(t){return t==='x'?'x':t==='nx'?'-x':t==='p'?'+1':'-1';}
+function renderPan(id,arr){
+  var el=document.getElementById(id);el.innerHTML='';
+  for(var i=0;i<arr.length;i++){var div=document.createElement('div');div.className=discCls(arr[i].t);div.textContent=discTxt(arr[i].t);el.appendChild(div);}
+}
+function renderBeam(){
+  var nL=numVal(panL),nR=numVal(panR),b=document.getElementById('beam');
+  b.className='beam';
+  if(nL===nR)b.classList.add('balanced');else if(nL>nR)b.classList.add('lheavy');else b.classList.add('rheavy');
+}
+function renderAll(){renderPan('pan-left',panL);renderPan('pan-right',panR);renderBeam();}
+function updatePreview(){
+  if(!selDisc)return;
+  var times=parseInt(document.getElementById('qty-in').value)||1;
+  var total=selDisc.faceValue*times;
+  var sign=(selDisc.t==='p'||selDisc.t==='x')?'+':'\u2212';
+  var suffix=(selDisc.t==='x'||selDisc.t==='nx')?'x':'';
+  document.getElementById('preview-lbl').textContent='Will add '+sign+total+suffix+' to each side ('+times+' \xd7 disc of '+selDisc.lbl+')';
+}
+function buildPalette(){
+  var p=document.getElementById('palette');p.innerHTML='';
+  var items=[{t:'x',faceValue:1,lbl:'x',cls:'db dx'},{t:'nx',faceValue:1,lbl:'-x',cls:'db dnx'}];
+  for(var i=1;i<=9;i++)items.push({t:'p',faceValue:i,lbl:'+'+i,cls:'db dp'});
+  for(var i=1;i<=9;i++)items.push({t:'n',faceValue:i,lbl:'-'+i,cls:'db dn'});
+  for(var j=0;j<items.length;j++){
+    (function(item){
+      var b=document.createElement('div');b.className=item.cls;b.textContent=item.lbl;
+      b.onclick=function(){pickDisc(b,item);};p.appendChild(b);
+    })(items[j]);
+  }
+}
+function pickDisc(el,item){
+  var all=document.querySelectorAll('.db');for(var i=0;i<all.length;i++)all[i].classList.remove('sel');
+  el.classList.add('sel');selDisc=item;document.getElementById('abtn').disabled=false;updatePreview();
+}
+document.addEventListener('input',function(e){if(e.target.id==='qty-in')updatePreview();});
+function setSide(s){
+  selSide=s;
+  var ids=['both','left','right'];
+  for(var i=0;i<ids.length;i++)document.getElementById('btn-'+ids[i]).classList.toggle('act',ids[i]===s);
+}
+function applyAction(){
+  if(!selDisc)return;
+  var times=parseInt(document.getElementById('qty-in').value)||1;
+  var fv=selDisc.faceValue,total=fv*times,t=selDisc.t;
+  var check=isValidMove(t,total,selSide);
+  if(!check.ok){document.getElementById('hint-area').innerHTML='<div class="hint">'+check.hint+'</div>';return;}
+  document.getElementById('hint-area').innerHTML='';
+  var xLb=xCoeff(panL),nLb=numVal(panL),xRb=xCoeff(panR),nRb=numVal(panR);
+  for(var i=0;i<total;i++){panL.push({t:t});panR.push({t:t});}
+  panL=cancelPairs(panL);panR=cancelPairs(panR);
+  stepCount++;
+  var tDisp=t==='p'?'+ '+total:t==='n'?'\u2212 '+total:t==='x'?'+ '+total+'x':'\u2212 '+total+'x';
+  var desc=t==='p'?'Add '+total+' to both sides':t==='n'?'Subtract '+total+' from both sides':t==='x'?'Add '+total+'x to both sides':'Subtract '+total+'x from both sides';
+  var lhsB=fmtSide(xLb,nLb)||'0',rhsB=fmtSide(xRb,nRb)||'0';
+  addCard('Step '+stepCount,desc+':',lhsB+' '+tDisp+' = '+rhsB+' '+tDisp,'ok');
+  addCard(null,'Simplify:',fmtEq(xCoeff(panL),numVal(panL),xCoeff(panR),numVal(panR)),'ok');
+  renderAll();
+  var state=getState();
+  if(state.done){showResult(state.answer);return;}
+  if(state.needDiv){showDivUI(state.coeff,state.rhs);document.getElementById('action-area').style.display='none';return;}
+}
+function fmtEq(xL,nL,xR,nR){return(fmtSide(xL,nL)||'0')+' = '+(fmtSide(xR,nR)||'0');}
+function fmtSide(x,n){
+  var p=[];
+  if(x>0)p.push(x===1?'x':x+'x');else if(x<0)p.push(x===-1?'\u2212x':'\u2212'+Math.abs(x)+'x');
+  if(n>0)p.push(x!==0?'+ '+n:''+n);else if(n<0)p.push('\u2212 '+Math.abs(n));
+  return p.join(' ');
+}
+function addCard(num,stmt,eq,cls){
+  var log=document.getElementById('steps-log');
+  var c=document.createElement('div');c.className='sc '+(cls||'');
+  c.innerHTML=(num?'<div class="snum">'+num+'</div>':'')+'<div class="sstmt">'+stmt+'</div><div class="seq">'+eq+'</div>';
+  log.appendChild(c);log.scrollTop=log.scrollHeight;
+}
+function showDivUI(coeff,rhs){
+  divVal='';var absC=Math.abs(coeff);
+  var area=document.getElementById('div-ui-area');
+  area.innerHTML='<div class="div-ui"><p>To find the value of x, <select id="dop"><option value="">&#8212; choose &#8212;</option><option value="add">add</option><option value="subtract">subtract</option><option value="multiply">multiply</option><option value="divide">divide</option></select> both sides by:</p><div class="kp-disp" id="kpd">?</div><div class="kp-grid" id="kpg"></div><button class="dab" id="dab-btn">Apply</button><div id="dh"></div></div>';
+  document.getElementById('dab-btn').onclick=function(){applyDiv(coeff,rhs);};
+  var g=document.getElementById('kpg');
+  var keys=[1,2,3,4,5,6,7,8,9,'\u232b',0,'OK'];
+  for(var i=0;i<keys.length;i++){
+    (function(k){
+      var b=document.createElement('button');b.className='kb';b.textContent=k;
+      b.onclick=function(){
+        if(k==='\u232b')divVal=divVal.slice(0,-1);
+        else if(k==='OK')applyDiv(coeff,rhs);
+        else divVal+=k;
+        document.getElementById('kpd').textContent=divVal||'?';
+      };
+      g.appendChild(b);
+    })(keys[i]);
+  }
+}
+function applyDiv(coeff,rhs){
+  var op=document.getElementById('dop').value,val=parseInt(divVal),absC=Math.abs(coeff);
+  var hint='';
+  if(op!=='divide')hint='Think about the inverse of multiplication \u2014 division undoes it!';
+  else if(val!==absC)hint='Divide by the coefficient of x. What number is in front of x right now?';
+  if(hint){document.getElementById('dh').innerHTML='<div class="hint" style="margin-top:6px">'+hint+'</div>';return;}
+  var ans=rhs/coeff;
+  stepCount++;
+  addCard('Step '+stepCount,'Divide both sides by '+absC+':',fmtEq(coeff,0,0,rhs)+' \xf7 '+absC,'ok');
+  addCard(null,'Simplify:','x = '+ans,'ok');
+  panL=[{t:'x'}];panR=[];
+  if(ans>0)for(var i=0;i<ans;i++)panR.push({t:'p'});
+  else if(ans<0)for(var i=0;i<Math.abs(ans);i++)panR.push({t:'n'});
+  renderAll();
+  document.getElementById('div-ui-area').innerHTML='';
+  document.getElementById('action-area').style.display='block';
+  showResult(ans);
+}
+function typeLabel(t){return t===1?'Type 1: x + b = c':t===2?'Type 2: ax + b = c':'Type 3: ax + b = cx + d';}
+function showResult(ans){
+  document.getElementById('action-area').style.display='none';
+  var optCount=currentQ.optimalSteps.length;
+  var isLast=currentType===3;
+  var msg=stepCount<=optCount?('You solved it in '+stepCount+' step'+(stepCount>1?'s':'')+' \u2014 optimal approach!'):('Solved in '+stepCount+' step'+(stepCount>1?'s':'')+'. Fastest method uses '+optCount+' steps \u2014 see below.');
+  var optHtml='';
+  for(var i=0;i<currentQ.optimalSteps.length;i++)optHtml+='<div class="opt-step">'+currentQ.optimalSteps[i]+'</div>';
+  var nextLabel=isLast?'':typeLabel(currentType+1);
+  document.getElementById('result-area').innerHTML=
+    '<div class="result-banner">'+
+      '<div class="result-answer">x = '+ans+'</div>'+
+      '<div class="result-msg">'+msg+'</div>'+
+      '<div class="next-label">What\'s next?</div>'+
+      '<div class="choice-btns">'+
+        '<button class="choice-btn btn-similar" onclick="loadSimilar()">'+
+          '&#9654; One more like this!'+
+          '<div class="btn-sub">Same concept &middot; fresh values &middot; '+typeLabel(currentType)+'</div>'+
+        '</button>'+
+        '<button class="choice-btn btn-levelup" onclick="loadNextType()" '+(isLast?'disabled':'')+'>'+
+          (isLast?'&#10003; All levels complete!':'&#8679; Level up!')+
+          '<div class="btn-sub">'+(isLast?'You have mastered all 3 question types':'Move on to '+nextLabel)+'</div>'+
+        '</button>'+
+      '</div>'+
+    '</div>'+
+    '<div class="optimal-box"><div class="opt-title">Fastest method:</div>'+optHtml+'</div>';
+}
+function updateTypeNav(type){
+  currentType=type;
+  for(var i=1;i<=3;i++){document.getElementById('tnav-'+i).className='tnav'+(i===type?' active-'+type:'');}
+}
+function loadSimilar(){
+  var q=null,tries=0;while(!q&&tries++<30)q=generateQ(currentType);if(q)loadQ(q);
+}
+function loadNextType(){
+  if(currentType>=3)return;
+  updateTypeNav(currentType+1);
+  var q=null,tries=0;while(!q&&tries++<30)q=generateQ(currentType);if(q)loadQ(q);
+}
+function loadQ(q){
+  currentQ=q;stepCount=0;selDisc=null;divVal='';
+  panL=cloneArr(q.lhsInit);panR=cloneArr(q.rhsInit);
+  var badge=document.getElementById('type-badge');
+  badge.className='type-badge type-'+q.type;badge.textContent=typeLabel(q.type);
+  document.getElementById('eq-val').textContent=q.eq;
+  document.getElementById('steps-log').innerHTML='<div class="sc info"><div class="sstmt">Starting equation:</div><div class="seq">'+q.eq+'</div></div>';
+  var ids=['result-area','hint-area','div-ui-area'];
+  for(var i=0;i<ids.length;i++)document.getElementById(ids[i]).innerHTML='';
+  document.getElementById('action-area').style.display='block';
+  document.getElementById('abtn').disabled=true;
+  document.getElementById('preview-lbl').textContent='\u2014 pick a disc above';
+  var all=document.querySelectorAll('.db');for(var i=0;i<all.length;i++)all[i].classList.remove('sel');
+  document.getElementById('qty-in').value=1;
+  setSide('both');renderAll();
+}
+buildPalette();
+updateTypeNav(1);
+var firstQ=null,tries=0;
+while(!firstQ&&tries++<30)firstQ=generateQ(1);
+loadQ(firstQ);
+</script>
+</body>
+</html>
